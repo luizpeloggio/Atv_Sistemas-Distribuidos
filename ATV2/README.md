@@ -2,6 +2,19 @@
 
 Disciplina: Sistemas Distribuídos
 Integrantes: Luiz Neto
+Vídeo de demonstração: [video_demonstracao.mkv](video_demonstracao.mkv)
+
+## Estrutura da pasta
+
+```
+ATV2/
+├── README.md                    (este arquivo)
+├── video_demonstracao.mkv       (vídeo da apresentação)
+└── codigo/
+    ├── servidor_rpc.py
+    ├── cliente_rpc_sincrono.py
+    └── cliente_rpc_assincrono.py
+```
 ## 1. Visão geral
 
 Ambiente virtualizado no VirtualBox com 3 VMs Debian 13, simulando uma arquitetura corporativa básica com zona protegida. Sobre ele, um serviço RPC (XML-RPC em Python) com três operações remotas de tempos de processamento diferentes, consumido por clientes **síncronos** e **assíncronos**.
@@ -48,9 +61,9 @@ VM2 e VM3 usam um único adaptador em Rede Interna (`redeB`) e recebem IP por DH
 
 | Arquivo | Onde roda | Descrição |
 |---|---|---|
-| `servidor_rpc.py` | VM1 | Servidor XML-RPC multithread (uma thread por requisição), porta 8000 |
-| `cliente_rpc_sincrono.py` | VM2 e VM3 | Cliente com chamadas bloqueantes e log de horários |
-| `cliente_rpc_assincrono.py` | VM2 e VM3 | Cliente com chamadas via `Future` e atividades locais em paralelo |
+| `codigo/servidor_rpc.py` | VM1 | Servidor XML-RPC multithread (uma thread por requisição), porta 8000 |
+| `codigo/cliente_rpc_sincrono.py` | VM2 e VM3 | Cliente com chamadas bloqueantes e log de horários |
+| `codigo/cliente_rpc_assincrono.py` | VM2 e VM3 | Cliente com chamadas via `Future` e atividades locais em paralelo |
 
 Operações remotas do servidor:
 1. `calcular(a, b, operacao)`: cálculo simples e rápido.
@@ -62,7 +75,7 @@ Operações remotas do servidor:
 Requisitos: Python 3 (já vem no Debian 13). Nenhuma biblioteca externa é necessária.
 
 ```bash
-# VM1
+# VM1 (dentro da pasta codigo/)
 python3 servidor_rpc.py
 
 # VM2 e VM3 - Parte I (síncrono)

@@ -1,9 +1,7 @@
 # Trabalho 2 — RPC Síncrono e Assíncrono com Servidor Multithread
 
 Disciplina: Sistemas Distribuídos
-Integrantes: [NOME 1] e [NOME 2]
-Vídeo de demonstração: [LINK DO VÍDEO]
-
+Integrantes: Luiz Neto
 ## 1. Visão geral
 
 Ambiente virtualizado no VirtualBox com 3 VMs Debian 13, simulando uma arquitetura corporativa básica com zona protegida. Sobre ele, um serviço RPC (XML-RPC em Python) com três operações remotas de tempos de processamento diferentes, consumido por clientes **síncronos** e **assíncronos**.

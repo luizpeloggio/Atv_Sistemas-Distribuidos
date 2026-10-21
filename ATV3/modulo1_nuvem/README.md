@@ -58,7 +58,6 @@ curl -X PUT URL/tarefas/1 -H "Content-Type: application/json" -d '{"titulo":"Est
 curl -X DELETE URL/tarefas/1
 ```
 
-[ADICIONE AQUI OS PRINTS DOS TESTES]
 
 ## Observações do plano gratuito
 

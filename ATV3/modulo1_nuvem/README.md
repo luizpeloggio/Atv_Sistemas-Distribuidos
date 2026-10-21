@@ -1,11 +1,10 @@
 # Projeto Incremental (3ª unidade) — Módulo 1: Computação em Nuvem
 
 Disciplina: Sistemas Distribuídos
-Integrantes: [NOMES DO GRUPO]
+Integrantes: Manoel Luiz e Elyza Santos
 
-- **URL pública da API:** [COLE AQUI A URL DO RENDER]
-- **Documentação interativa:** `[URL]/docs`
-- **Vídeo de demonstração (YouTube, não listado):** [COLE AQUI O LINK]
+- **Documentação interativa:** `[[URL]/docs`](https://atv-sistemas-distribuidos.onrender.com/docs#/default/deletar_tarefas__id__delete)
+- **Vídeo de demonstração (YouTube, não listado):** https://youtu.be/uH6YN3xjwng
 
 ## Domínio
 

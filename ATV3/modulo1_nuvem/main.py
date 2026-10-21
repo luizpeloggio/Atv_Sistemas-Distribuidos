@@ -7,8 +7,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 # A URL do banco vem de variavel de ambiente (configurada no painel do Render).
 DATABASE_URL = os.environ["DATABASE_URL"]
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# O Render fornece "postgresql://..."; o SQLAlchemy precisa saber o driver (psycopg 3).
+for prefixo in ("postgres://", "postgresql://"):
+    if DATABASE_URL.startswith(prefixo):
+        DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len(prefixo):]
+        break
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 Session = sessionmaker(bind=engine)

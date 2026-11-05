@@ -1,0 +1,72 @@
+# Blueprint do Render para o Módulo 2 (microsserviços).
+# Cria 4 Web Services gratuitos a partir deste repositório.
+#
+# Os valores marcados com `sync: false` são pedidos no painel durante a criação:
+#   DATABASE_URL  -> a "Internal Database URL" do seu PostgreSQL (o mesmo banco serve aos
+#                    3 serviços: cada um usa o seu próprio schema).
+#   *_URL         -> a URL pública (https://....onrender.com) do serviço correspondente.
+# Veja o passo a passo em ATV3/modulo2_microsservicos/README.md.
+services:
+  - type: web
+    name: sd-usuarios
+    runtime: python
+    plan: free
+    rootDir: ATV3/modulo2_microsservicos/usuarios-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SCHEMA
+        value: usuarios
+
+  - type: web
+    name: sd-projetos
+    runtime: python
+    plan: free
+    rootDir: ATV3/modulo2_microsservicos/projetos-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SCHEMA
+        value: projetos
+
+  - type: web
+    name: sd-tarefas
+    runtime: python
+    plan: free
+    rootDir: ATV3/modulo2_microsservicos/tarefas-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SCHEMA
+        value: tarefas
+      - key: USUARIOS_URL
+        sync: false
+      - key: PROJETOS_URL
+        sync: false
+      - key: REQUEST_TIMEOUT
+        value: "25"   # tolera a "partida a frio" (~1 min) dos serviços gratuitos
+
+  - type: web
+    name: sd-gateway
+    runtime: python
+    plan: free
+    rootDir: ATV3/modulo2_microsservicos/gateway
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: USUARIOS_URL
+        sync: false
+      - key: PROJETOS_URL
+        sync: false
+      - key: TAREFAS_URL
+        sync: false

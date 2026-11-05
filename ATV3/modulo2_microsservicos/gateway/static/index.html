@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskFlow Cloud</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c83ff'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='48' height='48' rx='12' fill='url(%23g)'/%3E%3Crect x='11' y='12' width='8' height='24' rx='3' fill='%23fff'/%3E%3Crect x='21' y='12' width='8' height='15' rx='3' fill='%23fff' opacity='.75'/%3E%3Crect x='31' y='12' width='6' height='9' rx='3' fill='%23fff' opacity='.55'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark light;
+    --bg: #0a0e1f; --bg2: #11172e; --panel: rgba(255,255,255,.045); --panel-2: rgba(255,255,255,.07);
+    --borda: rgba(255,255,255,.09); --texto: #e8eaf6; --suave: #9aa2c3; --acento: #7c83ff; --acento-2: #22d3ee;
+    --ok: #34d399; --erro: #f87171; --aviso: #fbbf24; --sombra: 0 10px 30px rgba(0,0,0,.35);
+    --glow: radial-gradient(1000px 500px at 10% -10%, rgba(124,131,255,.18), transparent 60%),
+            radial-gradient(900px 500px at 100% 0%, rgba(34,211,238,.12), transparent 55%);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f6fc; --bg2: #ffffff; --panel: rgba(255,255,255,.9); --panel-2: #eef0fa;
+      --borda: rgba(20,24,60,.12); --texto: #161a38; --suave: #5b6286; --acento: #5560f0; --acento-2: #0891b2;
+      --ok: #059669; --erro: #dc2626; --aviso: #b45309; --sombra: 0 8px 24px rgba(30,40,90,.12);
+      --glow: radial-gradient(1000px 500px at 10% -10%, rgba(85,96,240,.12), transparent 60%);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--texto); background-color: var(--bg); background-image: var(--glow); background-repeat: no-repeat; background-attachment: fixed;
+    font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* ------------------------------------------------------------ cabeçalho */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 22px 0 14px; }
+  .marca { display: flex; align-items: center; gap: 12px; }
+  .marca svg { width: 40px; height: 40px; filter: drop-shadow(0 6px 14px rgba(124,131,255,.45)); }
+  .marca h1 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
+  .marca small { display: block; color: var(--suave); font-size: 12.5px; margin-top: -2px; }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--panel);
+          border: 1px solid var(--borda); font-size: 12.5px; color: var(--suave); }
+  .pill b { color: var(--texto); font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--aviso); box-shadow: 0 0 0 0 currentColor; }
+  .on .dot { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+  .off .dot { background: var(--erro); box-shadow: 0 0 10px var(--erro); }
+  .wait .dot { animation: pulsa 1.2s infinite; }
+  @keyframes pulsa { 50% { opacity: .25; } }
+
+  /* ------------------------------------------------------------------ abas */
+  nav { display: flex; gap: 6px; padding: 5px; background: var(--panel); border: 1px solid var(--borda); border-radius: 14px; width: fit-content; margin: 8px 0 22px; }
+  nav button { border: 0; background: transparent; padding: 9px 18px; border-radius: 10px; color: var(--suave); cursor: pointer; font-weight: 600; transition: .15s; }
+  nav button:hover { color: var(--texto); }
+  nav button.ativa { background: linear-gradient(135deg, var(--acento), #5b62e8); color: #fff; box-shadow: 0 6px 16px rgba(124,131,255,.35); }
+  section.aba { display: none; } section.aba.ativa { display: block; animation: entra .25s ease; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } }
+
+  /* ------------------------------------------------------------- indicadores */
+  .kpis { display: grid; grid-template-columns: 1.3fr repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi { background: var(--panel); border: 1px solid var(--borda); border-radius: 16px; padding: 16px 18px; box-shadow: var(--sombra); }
+  .kpi span { color: var(--suave); font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; }
+  .kpi strong { display: block; font-size: 30px; letter-spacing: -.03em; margin-top: 4px; }
+  .kpi.destaque { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, rgba(124,131,255,.22), rgba(34,211,238,.10)); }
+  .anel { --p: 0; width: 70px; height: 70px; border-radius: 50%; flex: none; display: grid; place-items: center;
+          background: conic-gradient(var(--acento-2) calc(var(--p) * 1%), rgba(255,255,255,.12) 0); }
+  .anel i { font-style: normal; width: 54px; height: 54px; border-radius: 50%; background: var(--bg2); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .kpi.alerta strong { color: var(--erro); }
+
+  /* ----------------------------------------------------------------- barra */
+  .barra { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .barra .esp { flex: 1; }
+  input[type=search], select, input[type=text], input[type=email], input[type=date], textarea {
+    background: var(--panel); border: 1px solid var(--borda); border-radius: 11px; padding: 9px 12px; outline: none; transition: .15s; min-width: 0; }
+  input:focus, select:focus, textarea:focus { border-color: var(--acento); box-shadow: 0 0 0 3px rgba(124,131,255,.22); }
+  select option { background: var(--bg2); color: var(--texto); }
+  .btn { border: 1px solid var(--borda); background: var(--panel-2); border-radius: 11px; padding: 9px 16px; cursor: pointer; font-weight: 600; transition: .15s; }
+  .btn:hover { transform: translateY(-1px); border-color: var(--acento); }
+  .btn.primario { border: 0; color: #fff; background: linear-gradient(135deg, var(--acento), #5b62e8); box-shadow: 0 6px 16px rgba(124,131,255,.35); }
+  .btn.perigo { color: var(--erro); }
+
+  .aviso { display: none; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px;
+           background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.4); color: var(--texto); }
+  .aviso.mostra { display: flex; } .aviso b { color: var(--aviso); white-space: nowrap; }
+
+  /* ---------------------------------------------------------------- quadro */
+  .quadro { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+  .coluna { background: var(--panel); border: 1px solid var(--borda); border-radius: 18px; padding: 14px; min-height: 220px; transition: .15s; }
+  .coluna.alvo { border-color: var(--acento); background: rgba(124,131,255,.10); }
+  .coluna h3 { margin: 2px 4px 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--suave); display: flex; align-items: center; gap: 8px; }
+  .coluna h3 .marca-col { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+  .coluna h3 em { font-style: normal; margin-left: auto; background: var(--panel-2); padding: 1px 9px; border-radius: 999px; font-size: 12px; color: var(--texto); }
+  .cartao { background: var(--bg2); border: 1px solid var(--borda); border-left: 4px solid var(--p); border-radius: 13px; padding: 12px 13px; margin-bottom: 10px;
+            cursor: grab; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: transform .15s, box-shadow .15s; }
+  .cartao:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.28); }
+  .cartao.arrasta { opacity: .4; }
+  .cartao h4 { margin: 8px 0 4px; font-size: 15px; letter-spacing: -.01em; }
+  .cartao p { margin: 0 0 10px; color: var(--suave); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cartao footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
+          border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); }
+  .chip.sem { --c: var(--suave); }
+  .prazo { font-size: 12px; color: var(--suave); }
+  .prazo.atrasado { color: var(--erro); font-weight: 600; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex: none;
+            border: 2px solid var(--bg2); }
+  .avatar.g { width: 52px; height: 52px; font-size: 18px; }
+  .avatar.cinza { background: #6b7280 !important; }
+  .vazio-col { text-align: center; color: var(--suave); font-size: 13px; padding: 26px 8px; border: 1px dashed var(--borda); border-radius: 12px; }
+
+  /* ---------------------------------------------------------- equipe/projetos */
+  .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+  .cartao-g { background: var(--panel); border: 1px solid var(--borda); border-radius: 18px; padding: 18px; box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; }
+  .cartao-g .topo { display: flex; gap: 14px; align-items: center; }
+  .cartao-g h4 { margin: 0; font-size: 16px; } .cartao-g small { color: var(--suave); display: block; overflow-wrap: anywhere; }
+  .cartao-g .acoes { display: flex; gap: 8px; margin-top: auto; }
+  .barra-prog { height: 7px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .barra-prog i { display: block; height: 100%; background: var(--c, var(--acento)); border-radius: 99px; }
+  .faixa-cor { height: 6px; border-radius: 99px; background: var(--c); }
+  .estado-vazio { text-align: center; padding: 56px 20px; background: var(--panel); border: 1px dashed var(--borda); border-radius: 20px; }
+  .estado-vazio h2 { margin: 0 0 6px; } .estado-vazio p { color: var(--suave); margin: 0 0 18px; }
+
+  /* ------------------------------------------------------------- modal/toast */
+  dialog { border: 1px solid var(--borda); border-radius: 20px; background: var(--bg2); color: var(--texto); padding: 0; width: min(520px, 94vw); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  dialog::backdrop { background: rgba(5,8,20,.65); backdrop-filter: blur(4px); }
+  dialog form { padding: 22px; display: grid; gap: 14px; }
+  dialog h2 { margin: 0; font-size: 18px; }
+  label { display: grid; gap: 6px; font-size: 12.5px; color: var(--suave); font-weight: 600; }
+  label input, label select, label textarea { color: var(--texto); font-weight: 400; font-size: 15px; width: 100%; }
+  textarea { resize: vertical; min-height: 70px; }
+  .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rodape { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; } .rodape .esp { margin-right: auto; }
+  input[type=color] { padding: 2px; height: 40px; cursor: pointer; }
+  #toasts { position: fixed; right: 18px; bottom: 18px; display: grid; gap: 10px; z-index: 50; max-width: min(380px, 92vw); }
+  .toast { padding: 12px 16px; border-radius: 12px; background: var(--bg2); border: 1px solid var(--borda); border-left: 4px solid var(--ok); box-shadow: var(--sombra); animation: entra .2s ease; }
+  .toast.erro { border-left-color: var(--erro); }
+  footer.pe { margin-top: 40px; text-align: center; color: var(--suave); font-size: 12.5px; }
+
+  @media (max-width: 980px) { .kpis { grid-template-columns: 1fr 1fr; } .kpi.destaque { grid-column: 1 / -1; } .quadro { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .dupla { grid-template-columns: 1fr; } nav { width: 100%; } nav button { flex: 1; padding: 9px 6px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="marca">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c83ff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+        <rect x="3" y="3" width="42" height="42" rx="12" fill="url(#g)"/><rect x="11" y="12" width="8" height="24" rx="3" fill="#fff" opacity=".95"/>
+        <rect x="21" y="12" width="8" height="15" rx="3" fill="#fff" opacity=".75"/><rect x="31" y="12" width="6" height="9" rx="3" fill="#fff" opacity=".55"/></svg>
+      <div><h1>TaskFlow Cloud</h1><small>Gerenciador de tarefas em microsserviços</small></div>
+    </div>
+    <div class="pills" id="pills"></div>
+  </header>
+
+  <nav id="abas">
+    <button class="ativa" data-aba="quadro">Quadro</button>
+    <button data-aba="equipe">Equipe</button>
+    <button data-aba="projetos">Projetos</button>
+  </nav>
+
+  <div class="aviso" id="aviso"></div>
+
+  <!-- ========================================================== QUADRO -->
+  <section class="aba ativa" id="aba-quadro">
+    <div class="kpis" id="kpis"></div>
+    <div class="barra">
+      <input type="search" id="busca" placeholder="Buscar tarefa…" style="min-width:200px">
+      <select id="f-projeto"><option value="">Todos os projetos</option></select>
+      <select id="f-resp"><option value="">Todos os responsáveis</option></select>
+      <span class="esp"></span>
+      <button class="btn primario" id="nova-tarefa">+ Nova tarefa</button>
+    </div>
+    <div id="vazio"></div>
+    <div class="quadro" id="quadro"></div>
+  </section>
+
+  <!-- =========================================================== EQUIPE -->
+  <section class="aba" id="aba-equipe">
+    <div class="barra"><span class="esp"></span><button class="btn primario" id="novo-usuario">+ Novo membro</button></div>
+    <div class="grade" id="grade-equipe"></div>
+  </section>
+
+  <!-- ========================================================= PROJETOS -->
+  <section class="aba" id="aba-projetos">
+    <div class="barra"><span class="esp"></span><button class="btn primario" id="novo-projeto">+ Novo projeto</button></div>
+    <div class="grade" id="grade-projetos"></div>
+  </section>
+
+  <footer class="pe">Painel servido pelo API Gateway · dados vindos de 3 microsserviços independentes (usuários, projetos e tarefas)</footer>
+</div>
+
+<dialog id="dlg"><form id="frm" method="dialog"></form></dialog>
+<div id="toasts"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const STATUS = { pendente: "A fazer", em_andamento: "Em andamento", concluida: "Concluída" };
+const COR_STATUS = { pendente: "#9aa2c3", em_andamento: "#fbbf24", concluida: "#34d399" };
+const PRIO = { baixa: ["Baixa", "#34d399"], media: ["Média", "#fbbf24"], alta: ["Alta", "#f87171"] };
+const NOMES = { gateway: "Gateway", usuarios: "Usuários", projetos: "Projetos", tarefas: "Tarefas" };
+
+const S = { tarefas: [], usuarios: [], projetos: [], resumo: null, falhas: {}, carregado: false };
+
+/* ------------------------------------------------------------------ API */
+function mensagemErro(d, st) {
+  const x = d && d.detail;
+  if (!x) return `Erro ${st}`;
+  if (typeof x === "string") return x;
+  if (Array.isArray(x)) return x.map(i => `${(i.loc || []).slice(1).join(".")}: ${i.msg}`).join("; ");
+  return x.mensagem || `Erro ${st}`;
+}
+async function api(metodo, caminho, corpo) {
+  const r = await fetch("/api/" + caminho, {
+    method: metodo,
+    headers: corpo ? { "Content-Type": "application/json" } : {},
+    body: corpo ? JSON.stringify(corpo) : undefined,
+  });
+  let dados = null;
+  if (r.status !== 204) { try { dados = await r.json(); } catch (_) {} }
+  if (!r.ok) throw new Error(mensagemErro(dados, r.status));
+  return dados;
+}
+function toast(msg, erro = false) {
+  const el = document.createElement("div");
+  el.className = "toast" + (erro ? " erro" : "");
+  el.textContent = msg;
+  $("#toasts").appendChild(el);
+  setTimeout(() => el.remove(), erro ? 6500 : 3200);
+}
+
+/* ------------------------------------------------------------ utilitários */
+const cor = id => `hsl(${(id * 67 + 200) % 360} 65% 52%)`;
+const iniciais = n => n.trim().split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase();
+const hoje = () => new Date().toISOString().slice(0, 10);
+const fmtData = d => new Date(d + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", "");
+function avatar(ref, grande = false) {
+  const g = grande ? " g" : "";
+  if (!ref) return `<span class="avatar cinza${g}" title="Sem responsável">–</span>`;
+  if (ref.indisponivel) return `<span class="avatar cinza${g}" title="Serviço de usuários indisponível">?</span>`;
+  if (ref.removido) return `<span class="avatar cinza${g}" title="Usuário removido">×</span>`;
+  return `<span class="avatar${g}" style="background:${cor(ref.id)}" title="${esc(ref.nome)}">${esc(iniciais(ref.nome))}</span>`;
+}
+
+/* ---------------------------------------------------------------- carga */
+async function carregar() {
+  const [t, u, p, r] = await Promise.allSettled([
+    api("GET", "tarefas"), api("GET", "usuarios"), api("GET", "projetos"), api("GET", "resumo"),
+  ]);
+  S.falhas = {};
+  if (t.status === "fulfilled") S.tarefas = t.value; else S.falhas.tarefas = t.reason.message;
+  if (u.status === "fulfilled") S.usuarios = u.value; else S.falhas.usuarios = u.reason.message;
+  if (p.status === "fulfilled") S.projetos = p.value; else S.falhas.projetos = p.reason.message;
+  S.resumo = r.status === "fulfilled" ? r.value : null;
+  if (S.tarefas.some(x => x.responsavel && x.responsavel.indisponivel)) S.falhas.usuarios ||= "O serviço de usuários está indisponível no momento.";
+  if (S.tarefas.some(x => x.projeto && x.projeto.indisponivel)) S.falhas.projetos ||= "O serviço de projetos está indisponível no momento.";
+  S.carregado = true;
+  desenhar();
+}
+async function atualizarStatus() {
+  try {
+    const d = await api("GET", "status");
+    $("#pills").innerHTML = [{ servico: "gateway", status: "online", latencia_ms: null }, ...d.servicos].map(s =>
+      `<span class="pill ${s.status === "online" ? "on" : "off"}"><i class="dot"></i><b>${NOMES[s.servico]}</b>${s.latencia_ms != null ? s.latencia_ms + " ms" : s.status}</span>`).join("");
+  } catch (_) {
+    $("#pills").innerHTML = `<span class="pill off"><i class="dot"></i><b>Gateway</b>offline</span>`;
+  }
+}
+
+/* --------------------------------------------------------------- desenho */
+function desenhar() { desenharAviso(); desenharKpis(); desenharFiltros(); desenharQuadro(); desenharEquipe(); desenharProjetos(); }
+
+function desenharAviso() {
+  const el = $("#aviso"), f = S.falhas;
+  const nomes = Object.keys(f).map(k => ({ usuarios: "usuários", projetos: "projetos", tarefas: "tarefas" }[k]));
+  if (!nomes.length) { el.classList.remove("mostra"); return; }
+  el.classList.add("mostra");
+  el.innerHTML = `<b>Modo degradado.</b><span>O serviço de ${nomes.join(" e ")} está indisponível. O restante do sistema continua funcionando e as informações afetadas aparecem como “indisponível”. O painel se recupera sozinho quando o serviço voltar.</span>`;
+}
+
+function desenharKpis() {
+  const t = S.tarefas, c = s => t.filter(x => x.status === s).length;
+  const total = t.length, pct = total ? Math.round(100 * c("concluida") / total) : 0;
+  const atrasadas = t.filter(x => x.prazo && x.prazo < hoje() && x.status !== "concluida").length;
+  $("#kpis").innerHTML = `
+    <div class="kpi destaque"><div class="anel" style="--p:${pct}"><i>${pct}%</i></div><div><span>Progresso geral</span><strong>${c("concluida")}<small style="font-size:15px;color:var(--suave);margin-left:6px">de ${total}</small></strong></div></div>
+    <div class="kpi"><span>A fazer</span><strong>${c("pendente")}</strong></div>
+    <div class="kpi"><span>Em andamento</span><strong>${c("em_andamento")}</strong></div>
+    <div class="kpi"><span>Concluídas</span><strong>${c("concluida")}</strong></div>
+    <div class="kpi ${atrasadas ? "alerta" : ""}"><span>Atrasadas</span><strong>${atrasadas}</strong></div>`;
+}
+
+function desenharFiltros() {
+  const sp = $("#f-projeto"), sr = $("#f-resp"), vp = sp.value, vr = sr.value;
+  sp.innerHTML = `<option value="">Todos os projetos</option>` + S.projetos.map(p => `<option value="${p.id}">${esc(p.nome)}</option>`).join("");
+  sr.innerHTML = `<option value="">Todos os responsáveis</option>` + S.usuarios.map(u => `<option value="${u.id}">${esc(u.nome)}</option>`).join("");
+  sp.value = vp; sr.value = vr;
+}
+
+function tarefasFiltradas() {
+  const q = $("#busca").value.trim().toLowerCase(), fp = $("#f-projeto").value, fr = $("#f-resp").value;
+  return S.tarefas.filter(t => (!q || t.titulo.toLowerCase().includes(q)) && (!fp || String(t.projeto_id) === fp) && (!fr || String(t.responsavel_id) === fr));
+}
+
+function cartao(t) {
+  const [rotulo, corPrio] = PRIO[t.prioridade];
+  const p = t.projeto;
+  const chipProjeto = !p ? `<span class="chip sem">Sem projeto</span>`
+    : p.indisponivel ? `<span class="chip sem">Projeto indisponível</span>`
+    : p.removido ? `<span class="chip sem">Projeto removido</span>`
+    : `<span class="chip" style="--c:${esc(p.cor)}">${esc(p.nome)}</span>`;
+  const atrasado = t.prazo && t.prazo < hoje() && t.status !== "concluida";
+  return `<article class="cartao" draggable="true" data-id="${t.id}" style="--p:${corPrio}">
+    <div class="chips">${chipProjeto}<span class="chip" style="--c:${corPrio}">${rotulo}</span></div>
+    <h4>${esc(t.titulo)}</h4>${t.descricao ? `<p>${esc(t.descricao)}</p>` : `<p>&nbsp;</p>`}
+    <footer><span class="prazo ${atrasado ? "atrasado" : ""}">${t.prazo ? (atrasado ? "Atrasada · " : "Prazo · ") + fmtData(t.prazo) : "Sem prazo"}</span>${avatar(t.responsavel)}</footer></article>`;
+}
+
+function desenharQuadro() {
+  const semDados = S.carregado && !S.tarefas.length && !S.usuarios.length && !S.projetos.length && !Object.keys(S.falhas).length;
+  $("#vazio").innerHTML = semDados ? `<div class="estado-vazio"><h2>Nada por aqui ainda</h2><p>Crie seus dados ou carregue um conjunto de demonstração para ver o sistema funcionando.</p><button class="btn primario" id="btn-demo">Carregar dados de demonstração</button></div>` : "";
+  $("#quadro").style.display = semDados ? "none" : "";
+  const lista = tarefasFiltradas();
+  $("#quadro").innerHTML = Object.keys(STATUS).map(st => {
+    const itens = lista.filter(t => t.status === st);
+    return `<div class="coluna" data-status="${st}"><h3><i class="marca-col" style="--c:${COR_STATUS[st]}"></i>${STATUS[st]}<em>${itens.length}</em></h3>
+      ${itens.map(cartao).join("") || `<div class="vazio-col">Arraste tarefas para cá</div>`}</div>`;
+  }).join("");
+}
+
+function desenharEquipe() {
+  $("#grade-equipe").innerHTML = S.usuarios.map(u => {
+    const n = S.tarefas.filter(t => t.responsavel_id === u.id), ab = n.filter(t => t.status !== "concluida").length;
+    return `<div class="cartao-g"><div class="topo">${avatar(u, true)}<div><h4>${esc(u.nome)}</h4><small>${esc(u.cargo)}</small></div></div>
+      <small>${esc(u.email)}</small><small>${ab} tarefa(s) em aberto · ${n.length} no total</small>
+      <div class="acoes"><button class="btn" data-editar-usuario="${u.id}">Editar</button></div></div>`;
+  }).join("") || (S.falhas.usuarios ? `<div class="estado-vazio" style="grid-column:1/-1"><h2>Serviço de usuários indisponível</h2><p>${esc(S.falhas.usuarios)}</p></div>` : `<div class="estado-vazio" style="grid-column:1/-1"><h2>Nenhum membro</h2><p>Cadastre pessoas para atribuir tarefas.</p></div>`);
+}
+
+function desenharProjetos() {
+  $("#grade-projetos").innerHTML = S.projetos.map(p => {
+    const n = S.tarefas.filter(t => t.projeto_id === p.id), ok = n.filter(t => t.status === "concluida").length;
+    const pct = n.length ? Math.round(100 * ok / n.length) : 0;
+    return `<div class="cartao-g" style="--c:${esc(p.cor)}"><div class="faixa-cor"></div><h4>${esc(p.nome)} ${p.status === "arquivado" ? `<span class="chip sem">arquivado</span>` : ""}</h4>
+      <small>${esc(p.descricao) || "Sem descrição"}</small>
+      <div class="barra-prog"><i style="width:${pct}%"></i></div><small>${ok} de ${n.length} tarefas concluídas (${pct}%)</small>
+      <div class="acoes"><button class="btn" data-editar-projeto="${p.id}">Editar</button></div></div>`;
+  }).join("") || (S.falhas.projetos ? `<div class="estado-vazio" style="grid-column:1/-1"><h2>Serviço de projetos indisponível</h2><p>${esc(S.falhas.projetos)}</p></div>` : `<div class="estado-vazio" style="grid-column:1/-1"><h2>Nenhum projeto</h2><p>Crie projetos para agrupar suas tarefas.</p></div>`);
+}
+
+/* ------------------------------------------------------------ formulários */
+function abrirForm({ titulo, campos, valores = {}, aoSalvar, aoExcluir }) {
+  const frm = $("#frm");
+  frm.innerHTML = `<h2>${esc(titulo)}</h2>${campos(valores)}
+    <div class="rodape">${aoExcluir ? `<button type="button" class="btn perigo esp" id="excluir">Excluir</button>` : ""}
+    <button type="button" class="btn" id="cancelar">Cancelar</button><button class="btn primario" id="salvar">Salvar</button></div>`;
+  $("#cancelar").onclick = () => $("#dlg").close();
+  if (aoExcluir) $("#excluir").onclick = async () => {
+    try { await aoExcluir(); $("#dlg").close(); await carregar(); } catch (e) { toast(e.message, true); }
+  };
+  frm.onsubmit = async ev => {
+    ev.preventDefault();
+    const botao = $("#salvar"); botao.disabled = true;
+    try { await aoSalvar(Object.fromEntries(new FormData(frm))); $("#dlg").close(); await carregar(); toast("Salvo com sucesso"); }
+    catch (e) { toast(e.message, true); } finally { botao.disabled = false; }
+  };
+  $("#dlg").showModal();
+}
+const opcoes = (lista, atual, vazio) => (vazio ? `<option value="">${vazio}</option>` : "") +
+  lista.map(([v, r]) => `<option value="${esc(v)}" ${String(v) === String(atual ?? "") ? "selected" : ""}>${esc(r)}</option>`).join("");
+
+function formTarefa(t) {
+  abrirForm({
+    titulo: t ? "Editar tarefa" : "Nova tarefa", valores: t || {},
+    campos: v => `
+      <label>Título<input type="text" name="titulo" required minlength="2" maxlength="120" value="${esc(v.titulo)}" placeholder="O que precisa ser feito?"></label>
+      <label>Descrição<textarea name="descricao" maxlength="500">${esc(v.descricao)}</textarea></label>
+      <div class="dupla">
+        <label>Status<select name="status">${opcoes(Object.entries(STATUS), v.status || "pendente")}</select></label>
+        <label>Prioridade<select name="prioridade">${opcoes(Object.entries(PRIO).map(([k, x]) => [k, x[0]]), v.prioridade || "media")}</select></label>
+      </div>
+      <div class="dupla">
+        <label>Responsável<select name="responsavel_id">${opcoes(S.usuarios.map(u => [u.id, u.nome]), v.responsavel_id, "— sem responsável —")}</select></label>
+        <label>Projeto<select name="projeto_id">${opcoes(S.projetos.map(p => [p.id, p.nome]), v.projeto_id, "— sem projeto —")}</select></label>
+      </div>
+      <label>Prazo<input type="date" name="prazo" value="${esc(v.prazo || "")}"></label>`,
+    aoSalvar: async f => {
+      const corpo = { titulo: f.titulo, descricao: f.descricao, status: f.status, prioridade: f.prioridade,
+        responsavel_id: f.responsavel_id ? Number(f.responsavel_id) : null, projeto_id: f.projeto_id ? Number(f.projeto_id) : null, prazo: f.prazo || null };
+      await (t ? api("PUT", `tarefas/${t.id}`, corpo) : api("POST", "tarefas", corpo));
+    },
+    aoExcluir: t ? () => api("DELETE", `tarefas/${t.id}`) : null,
+  });
+}
+function formUsuario(u) {
+  abrirForm({
+    titulo: u ? "Editar membro" : "Novo membro", valores: u || {},
+    campos: v => `
+      <label>Nome<input type="text" name="nome" required minlength="2" maxlength="80" value="${esc(v.nome)}"></label>
+      <label>E-mail<input type="email" name="email" required value="${esc(v.email)}"></label>
+      <label>Cargo<input type="text" name="cargo" maxlength="60" value="${esc(v.cargo || "Membro")}"></label>`,
+    aoSalvar: f => u ? api("PUT", `usuarios/${u.id}`, f) : api("POST", "usuarios", f),
+    aoExcluir: u ? async () => {
+      if (!confirm("Excluir este membro? As tarefas dele continuam existindo, mas ficam sem responsável identificado.")) throw new Error("Exclusão cancelada");
+      await api("DELETE", `usuarios/${u.id}`);
+    } : null,
+  });
+}
+function formProjeto(p) {
+  abrirForm({
+    titulo: p ? "Editar projeto" : "Novo projeto", valores: p || {},
+    campos: v => `
+      <label>Nome<input type="text" name="nome" required minlength="2" maxlength="80" value="${esc(v.nome)}"></label>
+      <label>Descrição<textarea name="descricao" maxlength="300">${esc(v.descricao)}</textarea></label>
+      <div class="dupla"><label>Cor<input type="color" name="cor" value="${esc(v.cor || "#6366f1")}"></label>
+      <label>Status<select name="status">${opcoes([["ativo", "Ativo"], ["arquivado", "Arquivado"]], v.status || "ativo")}</select></label></div>`,
+    aoSalvar: f => p ? api("PUT", `projetos/${p.id}`, f) : api("POST", "projetos", f),
+    aoExcluir: p ? async () => {
+      if (!confirm("Excluir este projeto? As tarefas continuam existindo, mas ficam sem projeto identificado.")) throw new Error("Exclusão cancelada");
+      await api("DELETE", `projetos/${p.id}`);
+    } : null,
+  });
+}
+
+/* ---------------------------------------------------------------- eventos */
+$("#abas").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#abas button").forEach(x => x.classList.toggle("ativa", x === b));
+  document.querySelectorAll("section.aba").forEach(s => s.classList.toggle("ativa", s.id === "aba-" + b.dataset.aba));
+};
+$("#nova-tarefa").onclick = () => formTarefa();
+$("#novo-usuario").onclick = () => formUsuario();
+$("#novo-projeto").onclick = () => formProjeto();
+["busca", "f-projeto", "f-resp"].forEach(id => $("#" + id).addEventListener("input", desenharQuadro));
+document.addEventListener("click", async e => {
+  if (e.target.id === "btn-demo") {
+    e.target.disabled = true; e.target.textContent = "Criando dados…";
+    try { const r = await api("POST", "demo"); toast(r.criado ? `Criados ${r.usuarios} usuários, ${r.projetos} projetos e ${r.tarefas} tarefas` : r.mensagem); await carregar(); }
+    catch (err) { toast(err.message, true); e.target.disabled = false; e.target.textContent = "Carregar dados de demonstração"; }
+    return;
+  }
+  const eu = e.target.closest("[data-editar-usuario]"), ep = e.target.closest("[data-editar-projeto]"), ct = e.target.closest(".cartao");
+  if (eu) formUsuario(S.usuarios.find(u => u.id == eu.dataset.editarUsuario));
+  else if (ep) formProjeto(S.projetos.find(p => p.id == ep.dataset.editarProjeto));
+  else if (ct) formTarefa(S.tarefas.find(t => t.id == ct.dataset.id));
+});
+
+/* arrastar e soltar entre colunas */
+let arrastando = null;
+document.addEventListener("dragstart", e => { const c = e.target.closest(".cartao"); if (!c) return; arrastando = c.dataset.id; c.classList.add("arrasta"); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", arrastando); });
+document.addEventListener("dragend", () => { arrastando = null; document.querySelectorAll(".arrasta,.alvo").forEach(x => x.classList.remove("arrasta", "alvo")); });
+document.addEventListener("dragover", e => { const col = e.target.closest(".coluna"); if (!col || !arrastando) return; e.preventDefault(); document.querySelectorAll(".alvo").forEach(x => x.classList.remove("alvo")); col.classList.add("alvo"); });
+document.addEventListener("drop", async e => {
+  const col = e.target.closest(".coluna"); if (!col || !arrastando) return; e.preventDefault();
+  const id = Number(arrastando), novo = col.dataset.status, t = S.tarefas.find(x => x.id === id);
+  if (!t || t.status === novo) return;
+  const antigo = t.status; t.status = novo; desenhar();          // atualização otimista
+  try { await api("PATCH", `tarefas/${id}`, { status: novo }); toast(`Tarefa movida para “${STATUS[novo]}”`); await carregar(); }
+  catch (err) { t.status = antigo; desenhar(); toast(err.message, true); }
+});
+
+/* inicialização */
+$("#pills").innerHTML = ["Gateway", "Usuários", "Projetos", "Tarefas"].map(n => `<span class="pill wait"><i class="dot"></i><b>${n}</b>verificando…</span>`).join("");
+atualizarStatus(); carregar();
+setInterval(atualizarStatus, 15000);
+setInterval(() => { if (!$("#dlg").open) carregar(); }, 30000);
+</script>
+</body>
+</html>

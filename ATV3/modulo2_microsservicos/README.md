@@ -3,7 +3,8 @@
 Disciplina: Sistemas Distribuídos
 Integrantes: [NOMES DO GRUPO]
 
-- **Painel (API Gateway) em nuvem:** [COLE AQUI A URL DO sd-gateway NO RENDER]
+- **Painel (API Gateway) em nuvem:** <https://sd-gateway.onrender.com>
+- **Serviços no Render:** `sd-usuarios`, `sd-projetos`, `sd-tarefas` e `sd-gateway` (plano gratuito: a primeira abertura pode levar cerca de 1 minuto)
 - **Módulo 1 (versão monolítica):** [`../modulo1_nuvem`](../modulo1_nuvem)
 
 ![Painel do TaskFlow Cloud](docs/painel.png)

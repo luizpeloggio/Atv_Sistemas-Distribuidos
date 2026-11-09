@@ -1,7 +1,8 @@
 # Projeto Incremental (3ª unidade) — Módulo 2: Serviços / Microsserviços
 
 Disciplina: Sistemas Distribuídos
-Integrantes: [NOMES DO GRUPO]
+Integrantes: Manoel Luiz de Medeiros Neto
+Link do Youtube: https://youtu.be/nxehqnmk2X0
 
 - **Painel (API Gateway) em nuvem:** <https://sd-gateway.onrender.com>
 - **Serviços no Render:** `sd-usuarios`, `sd-projetos`, `sd-tarefas` e `sd-gateway` (plano gratuito: a primeira abertura pode levar cerca de 1 minuto)

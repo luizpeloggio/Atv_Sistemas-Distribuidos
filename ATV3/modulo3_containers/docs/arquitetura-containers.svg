@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 710" width="1200" height="710" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa8ff"/></marker>
+    <marker id="setaRosa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#f472b6"/></marker>
+    <marker id="setaCinza" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker>
+    <linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b1022"/><stop offset="1" stop-color="#131a38"/></linearGradient>
+  </defs>
+  <rect width="1200" height="710" rx="22" fill="url(#fundo)"/>
+  <text x="40" y="52" fill="#fff" font-size="23" font-weight="700">Arquitetura — TaskFlow Cloud em containers (Docker Compose)</text>
+  <text x="40" y="76" fill="#9aa2c3" font-size="13.5">7 containers: 1 gateway, 3 microsserviços e 3 bancos PostgreSQL, ligados por duas redes e com volumes persistentes.</text>
+
+  <!-- redes -->
+  <rect x="230" y="105" width="590" height="540" rx="20" fill="#7c83ff" fill-opacity=".07" stroke="#7c83ff" stroke-width="1.8" stroke-dasharray="8 6"/>
+  <text x="250" y="132" fill="#aab2ff" font-size="13" font-weight="700">rede "app"</text>
+  <rect x="545" y="105" width="625" height="540" rx="20" fill="#34d399" fill-opacity=".06" stroke="#34d399" stroke-width="1.8" stroke-dasharray="8 6"/>
+  <text x="1150" y="132" fill="#86efc4" font-size="13" font-weight="700" text-anchor="end">rede "dados" (internal: sem acesso à internet)</text>
+
+  <!-- host / navegador -->
+  <rect x="30" y="345" width="150" height="110" rx="14" fill="#161d3f" stroke="#475085" stroke-width="2"/>
+  <text x="105" y="392" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">Navegador</text>
+  <text x="105" y="414" fill="#9aa2c3" font-size="12.5" text-anchor="middle">no seu computador</text>
+  <line x1="180" y1="400" x2="258" y2="400" stroke="#9aa8ff" stroke-width="2.5" marker-end="url(#seta)"/>
+  <text x="219" y="388" fill="#c7cdf5" font-size="11.5" text-anchor="middle">:8000</text>
+
+  <!-- gateway -->
+  <rect x="260" y="335" width="200" height="130" rx="16" fill="#1a2147" stroke="#7c83ff" stroke-width="2.5"/>
+  <text x="360" y="368" fill="#fff" font-size="16.5" font-weight="700" text-anchor="middle">gateway</text>
+  <text x="360" y="388" fill="#aab2e8" font-size="12" text-anchor="middle">taskflow/gateway:1.0</text>
+  <text x="360" y="414" fill="#d6dbff" font-size="12.5" text-anchor="middle">API Gateway + painel web</text>
+  <text x="360" y="436" fill="#9aa2c3" font-size="12" text-anchor="middle">única porta publicada: 8000</text>
+
+  <!-- gateway -> servicos -->
+  <path d="M460 375 C515 375 515 215 568 215" fill="none" stroke="#9aa8ff" stroke-width="2.5" marker-end="url(#seta)"/>
+  <line x1="460" y1="400" x2="568" y2="400" stroke="#9aa8ff" stroke-width="2.5" marker-end="url(#seta)"/>
+  <path d="M460 425 C515 425 515 585 568 585" fill="none" stroke="#9aa8ff" stroke-width="2.5" marker-end="url(#seta)"/>
+
+  <!-- usuarios -->
+  <rect x="570" y="165" width="215" height="100" rx="16" fill="#10281f" stroke="#34d399" stroke-width="2.5"/>
+  <text x="677" y="198" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">usuarios</text>
+  <text x="677" y="218" fill="#86efc4" font-size="12" text-anchor="middle">taskflow/usuarios:1.0</text>
+  <text x="677" y="242" fill="#cdeee0" font-size="12" text-anchor="middle">FastAPI · porta interna 8000</text>
+  <!-- tarefas -->
+  <rect x="570" y="350" width="215" height="100" rx="16" fill="#2b2110" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="677" y="383" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">tarefas</text>
+  <text x="677" y="403" fill="#fcd28a" font-size="12" text-anchor="middle">taskflow/tarefas:1.0</text>
+  <text x="677" y="427" fill="#f3e0bd" font-size="12" text-anchor="middle">FastAPI · porta interna 8000</text>
+  <!-- projetos -->
+  <rect x="570" y="535" width="215" height="100" rx="16" fill="#0f2730" stroke="#22d3ee" stroke-width="2.5"/>
+  <text x="677" y="568" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">projetos</text>
+  <text x="677" y="588" fill="#7ce6f7" font-size="12" text-anchor="middle">taskflow/projetos:1.0</text>
+  <text x="677" y="612" fill="#c8eef5" font-size="12" text-anchor="middle">FastAPI · porta interna 8000</text>
+
+  <!-- tarefas -> usuarios/projetos (DNS do compose) -->
+  <line x1="677" y1="350" x2="677" y2="267" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#setaRosa)"/>
+  <text x="689" y="312" fill="#f9a8d4" font-size="11.5">http://usuarios:8000</text>
+  <line x1="677" y1="450" x2="677" y2="533" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#setaRosa)"/>
+  <text x="689" y="496" fill="#f9a8d4" font-size="11.5">http://projetos:8000</text>
+
+  <!-- bancos -->
+  <line x1="785" y1="215" x2="898" y2="215" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#setaCinza)"/>
+  <line x1="785" y1="400" x2="898" y2="400" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#setaCinza)"/>
+  <line x1="785" y1="585" x2="898" y2="585" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#setaCinza)"/>
+
+  <rect x="900" y="160" width="240" height="110" rx="16" fill="#141a33" stroke="#34d399" stroke-width="2"/>
+  <text x="1020" y="190" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">db-usuarios</text>
+  <text x="1020" y="208" fill="#94a3b8" font-size="12" text-anchor="middle">postgres:16-alpine</text>
+  <rect x="925" y="222" width="190" height="32" rx="9" fill="#10281f" stroke="#34d399" stroke-dasharray="4 3"/>
+  <text x="1020" y="243" fill="#86efc4" font-size="12" text-anchor="middle">volume  pg_usuarios</text>
+
+  <rect x="900" y="345" width="240" height="110" rx="16" fill="#141a33" stroke="#f59e0b" stroke-width="2"/>
+  <text x="1020" y="375" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">db-tarefas</text>
+  <text x="1020" y="393" fill="#94a3b8" font-size="12" text-anchor="middle">postgres:16-alpine</text>
+  <rect x="925" y="407" width="190" height="32" rx="9" fill="#2b2110" stroke="#f59e0b" stroke-dasharray="4 3"/>
+  <text x="1020" y="428" fill="#fcd28a" font-size="12" text-anchor="middle">volume  pg_tarefas</text>
+
+  <rect x="900" y="530" width="240" height="110" rx="16" fill="#141a33" stroke="#22d3ee" stroke-width="2"/>
+  <text x="1020" y="560" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">db-projetos</text>
+  <text x="1020" y="578" fill="#94a3b8" font-size="12" text-anchor="middle">postgres:16-alpine</text>
+  <rect x="925" y="592" width="190" height="32" rx="9" fill="#0f2730" stroke="#22d3ee" stroke-dasharray="4 3"/>
+  <text x="1020" y="613" fill="#7ce6f7" font-size="12" text-anchor="middle">volume  pg_projetos</text>
+
+  <!-- legenda -->
+  <line x1="40" y1="672" x2="84" y2="672" stroke="#9aa8ff" stroke-width="2.5" marker-end="url(#seta)"/>
+  <text x="94" y="677" fill="#c7cdf5" font-size="12.5">HTTP (host → gateway → serviços)</text>
+  <line x1="350" y1="672" x2="394" y2="672" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#setaRosa)"/>
+  <text x="404" y="677" fill="#f9a8d4" font-size="12.5">HTTP entre serviços (nome do container = DNS)</text>
+  <line x1="760" y1="672" x2="804" y2="672" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#setaCinza)"/>
+  <text x="814" y="677" fill="#cbd5e1" font-size="12.5">SQL (cada serviço, seu banco)</text>
+  <text x="40" y="700" fill="#7f87ad" font-size="12">Os serviços também expõem 127.0.0.1:8001-8003 só para depuração; os bancos não publicam porta alguma.</text>
+</svg>

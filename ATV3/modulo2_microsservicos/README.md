@@ -133,5 +133,5 @@ ATV3/modulo2_microsservicos/
 
 ## Preparação para os próximos módulos
 
-- **Containers (Módulo 3):** cada serviço já é autônomo e configurado por variáveis de ambiente, então basta um `Dockerfile` por pasta e um `docker-compose.yml`.
+- **Containers (Módulo 3):** feito em [`../modulo3_containers`](../modulo3_containers): um `Dockerfile` por serviço (nestas pastas) e um `docker-compose.yml` com os bancos.
 - **Mensageria (Módulo 4):** o serviço de tarefas já registra nos logs os eventos de domínio (`tarefa.criada`, `tarefa.status_alterado`, `tarefa.removida`), que passarão a ser publicados em um broker.

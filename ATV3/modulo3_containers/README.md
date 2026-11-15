@@ -26,8 +26,13 @@ Os Dockerfiles ficam ao lado do código de cada serviço, que é o lugar convenc
 
 ## Pré-requisitos
 
-- Docker Engine com o plugin Compose v2. Instalação para Debian: <https://docs.docker.com/engine/install/debian/>.
-- Confira com `docker --version` e `docker compose version`. Para rodar sem `sudo`, adicione seu usuário ao grupo `docker` (`sudo usermod -aG docker $USER`) e abra um novo terminal.
+- **Docker Engine com o plugin Compose v2.** Guia oficial de instalação: <https://docs.docker.com/engine/install/>. Em distribuições Debian/Ubuntu (e derivadas), o caminho mais simples é o script oficial:
+  ```bash
+  curl -fsSL https://get.docker.com -o get-docker.sh
+  sudo sh get-docker.sh
+  sudo usermod -aG docker $USER     # para rodar sem sudo; abra um novo terminal depois
+  ```
+- Confira com `docker --version`, `docker compose version` e `docker run hello-world`.
 - `curl` e `python3` (apenas para os scripts de teste).
 
 ## Como executar

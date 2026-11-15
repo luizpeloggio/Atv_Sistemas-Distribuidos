@@ -1,7 +1,7 @@
 # Projeto Incremental (3ª unidade) — Módulo 3: Containers
 
 Disciplina: Sistemas Distribuídos
-Integrantes: [NOMES DO GRUPO]
+Integrantes: Manoel Luiz de Medeiros Neto
 
 - **Vídeo de demonstração (YouTube, não listado):** [COLE AQUI O LINK]
 - **Módulo anterior (microsserviços):** [`../modulo2_microsservicos`](../modulo2_microsservicos)

@@ -134,4 +134,4 @@ ATV3/modulo2_microsservicos/
 ## Preparação para os próximos módulos
 
 - **Containers (Módulo 3):** feito em [`../modulo3_containers`](../modulo3_containers): um `Dockerfile` por serviço (nestas pastas) e um `docker-compose.yml` com os bancos.
-- **Mensageria (Módulo 4):** o serviço de tarefas já registra nos logs os eventos de domínio (`tarefa.criada`, `tarefa.status_alterado`, `tarefa.removida`), que passarão a ser publicados em um broker.
+- **Mensageria (Módulo 4):** feito em [`../modulo4_mensageria`](../modulo4_mensageria): os eventos de domínio do serviço de tarefas passaram a ser publicados no RabbitMQ (opcional: sem `RABBITMQ_URL`, como no Render, o serviço funciona igual).

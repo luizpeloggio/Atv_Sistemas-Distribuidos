@@ -9,7 +9,9 @@ HTTP (chamada síncrona). Se um deles estiver fora do ar:
 Banco próprio: schema "tarefas" (PostgreSQL) ou arquivo SQLite local.
 """
 import logging
+import json
 import os
+import threading
 import time
 import uuid
 from collections import Counter
@@ -18,6 +20,7 @@ from datetime import date, datetime, timezone
 from typing import Literal
 
 import httpx
+import pika
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -52,6 +55,85 @@ if SCHEMA:
         conexao.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{SCHEMA}"'))
 Base = declarative_base(metadata=MetaData(schema=SCHEMA))
 Session = sessionmaker(bind=engine)
+
+# ------------------------------------------------------------------ mensageria (Módulo 4)
+# Publicação de eventos de domínio no RabbitMQ. É OPCIONAL: sem RABBITMQ_URL (Módulos 1-3, Render)
+# nada muda. Com o broker fora do ar, a API continua funcionando: o evento é só registrado em log.
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
+EXCHANGE = "taskflow.eventos"          # exchange do tipo "topic"; chave = nome do evento
+_mq_lock = threading.Lock()
+_mq_conexao = None
+_mq_canal = None
+_mq_retomar_em = 0.0                   # evita martelar um broker que acabou de falhar
+
+
+def _mq_fechar() -> None:
+    global _mq_conexao, _mq_canal
+    try:
+        if _mq_conexao is not None and _mq_conexao.is_open:
+            _mq_conexao.close()
+    except Exception:
+        pass
+    _mq_conexao = _mq_canal = None
+
+
+def _mq_conectar():
+    global _mq_conexao, _mq_canal
+    parametros = pika.URLParameters(RABBITMQ_URL)
+    parametros.socket_timeout = 2
+    parametros.stack_timeout = 3
+    parametros.connection_attempts = 1
+    parametros.heartbeat = 0
+    _mq_conexao = pika.BlockingConnection(parametros)
+    _mq_canal = _mq_conexao.channel()
+    _mq_canal.exchange_declare(exchange=EXCHANGE, exchange_type="topic", durable=True)
+    _mq_canal.confirm_delivery()       # o broker confirma o recebimento de cada mensagem
+    return _mq_canal
+
+
+def publicar_evento(chave: str, dados: dict) -> None:
+    """Publica {evento, id da mensagem, instante, request_id, dados} em taskflow.eventos."""
+    global _mq_canal, _mq_retomar_em
+    log.info("EVENTO %s %s", chave, json.dumps(dados, default=str))
+    if not RABBITMQ_URL:
+        return
+    mensagem = {
+        "id": str(uuid.uuid4()),
+        "evento": chave,
+        "ocorrido_em": datetime.now(timezone.utc).isoformat(),
+        "request_id": request_id_ctx.get(),
+        "dados": dados,
+    }
+    with _mq_lock:
+        if time.monotonic() < _mq_retomar_em:
+            log.warning("RabbitMQ indisponível: evento %s não publicado", chave)
+            return
+        for tentativa in (1, 2):       # 2ª tentativa recria a conexão (pode ter caído por inatividade)
+            try:
+                canal = _mq_canal if (_mq_canal is not None and _mq_canal.is_open) else _mq_conectar()
+                canal.basic_publish(
+                    exchange=EXCHANGE,
+                    routing_key=chave,
+                    body=json.dumps(mensagem, default=str).encode(),
+                    properties=pika.BasicProperties(
+                        content_type="application/json",
+                        delivery_mode=pika.DeliveryMode.Persistent,
+                        message_id=mensagem["id"],
+                    ),
+                )
+                log.info("PUBLICADO %s -> exchange=%s msg=%s", chave, EXCHANGE, mensagem["id"])
+                return
+            except Exception as erro:
+                _mq_fechar()
+                log.warning("falha ao publicar %s (tentativa %d): %s", chave, tentativa, erro.__class__.__name__)
+        _mq_retomar_em = time.monotonic() + 10
+        log.warning("RabbitMQ indisponível: evento %s não publicado", chave)
+
+
+def resumo_tarefa(t) -> dict:
+    return {"id": t.id, "titulo": t.titulo, "status": t.status, "prioridade": t.prioridade,
+            "responsavel_id": t.responsavel_id, "projeto_id": t.projeto_id}
+
 
 STATUS = ("pendente", "em_andamento", "concluida")
 PRIORIDADES = ("baixa", "media", "alta")
@@ -275,7 +357,9 @@ def criar(corpo: TarefaIn, resposta: Response):
         s.add(t)
         s.commit()
         s.refresh(t)
-        log.info("EVENTO tarefa.criada id=%s status=%s", t.id, t.status)
+        publicar_evento("tarefa.criada", resumo_tarefa(t))
+        if t.status == "concluida":
+            publicar_evento("tarefa.concluida", resumo_tarefa(t))
         return enriquecer([t], resposta)[0]
 
 
@@ -291,9 +375,15 @@ def aplicar(id: int, campos: dict, resposta: Response) -> dict:
             setattr(t, campo, valor)
         if t.status != status_anterior:
             t.concluida_em = datetime.now(timezone.utc) if t.status == "concluida" else None
-            log.info("EVENTO tarefa.status_alterado id=%s de=%s para=%s", t.id, status_anterior, t.status)
+            mudou = True
+        else:
+            mudou = False
         s.commit()
         s.refresh(t)
+        if mudou:
+            publicar_evento("tarefa.status_alterado", {**resumo_tarefa(t), "de": status_anterior, "para": t.status})
+            if t.status == "concluida":
+                publicar_evento("tarefa.concluida", resumo_tarefa(t))
         return enriquecer([t], resposta)[0]
 
 
@@ -317,6 +407,7 @@ def deletar(id: int):
         t = s.get(Tarefa, id)
         if not t:
             raise HTTPException(404, "Tarefa não encontrada")
+        dados = resumo_tarefa(t)
         s.delete(t)
         s.commit()
-        log.info("EVENTO tarefa.removida id=%s", id)
+        publicar_evento("tarefa.removida", dados)

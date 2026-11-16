@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" width="1200" height="470" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa8ff"/></marker>
+    <marker id="setaLar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fb923c"/></marker>
+    <linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b1022"/><stop offset="1" stop-color="#131a38"/></linearGradient>
+  </defs>
+  <rect width="1200" height="470" rx="22" fill="url(#fundo)"/>
+  <text x="40" y="52" fill="#fff" font-size="23" font-weight="700">Mensageria — produtor → broker → consumidor (RabbitMQ)</text>
+  <text x="40" y="76" fill="#9aa2c3" font-size="13.5">O serviço de tarefas publica o evento e segue a vida; o consumidor o recebe quando puder, sem que um conheça o outro.</text>
+
+  <!-- produtor -->
+  <rect x="40" y="150" width="270" height="170" rx="18" fill="#2b2110" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="175" y="188" fill="#fff" font-size="12.5" font-weight="700" text-anchor="middle" letter-spacing="2">PRODUTOR</text>
+  <text x="175" y="220" fill="#fff" font-size="19" font-weight="700" text-anchor="middle">serviço de tarefas</text>
+  <text x="175" y="246" fill="#fcd28a" font-size="12.5" text-anchor="middle">taskflow/tarefas:1.0</text>
+  <text x="175" y="276" fill="#f3e0bd" font-size="13" text-anchor="middle">PATCH /tarefas/7 {"status":"concluida"}</text>
+  <text x="175" y="298" fill="#f3e0bd" font-size="13" text-anchor="middle">→ publica "tarefa.concluida"</text>
+
+  <!-- broker -->
+  <rect x="430" y="120" width="340" height="230" rx="18" fill="#1a2147" stroke="#7c83ff" stroke-width="2.5"/>
+  <text x="600" y="156" fill="#fff" font-size="12.5" font-weight="700" text-anchor="middle" letter-spacing="2">BROKER</text>
+  <text x="600" y="184" fill="#fff" font-size="19" font-weight="700" text-anchor="middle">RabbitMQ</text>
+  <text x="600" y="206" fill="#aab2e8" font-size="12.5" text-anchor="middle">rabbitmq:3-management</text>
+  <rect x="455" y="226" width="130" height="58" rx="10" fill="#10281f" stroke="#34d399"/>
+  <text x="520" y="250" fill="#86efc4" font-size="12" font-weight="700" text-anchor="middle">exchange (topic)</text>
+  <text x="520" y="268" fill="#cdeee0" font-size="11" text-anchor="middle">taskflow.eventos</text>
+  <rect x="615" y="226" width="130" height="58" rx="10" fill="#10281f" stroke="#34d399"/>
+  <text x="680" y="250" fill="#86efc4" font-size="12" font-weight="700" text-anchor="middle">fila durável</text>
+  <text x="680" y="268" fill="#cdeee0" font-size="11" text-anchor="middle">notificacoes.tarefas</text>
+  <line x1="585" y1="255" x2="613" y2="255" stroke="#34d399" stroke-width="2" marker-end="url(#seta)"/>
+  <text x="600" y="308" fill="#9aa2c3" font-size="11.5" text-anchor="middle">binding "tarefa.*" · mensagens persistentes</text>
+  <text x="600" y="328" fill="#9aa2c3" font-size="11.5" text-anchor="middle">a fila guarda o que o consumidor ainda não leu</text>
+
+  <!-- consumidor -->
+  <rect x="890" y="150" width="270" height="170" rx="18" fill="#0f2730" stroke="#22d3ee" stroke-width="2.5"/>
+  <text x="1025" y="188" fill="#fff" font-size="12.5" font-weight="700" text-anchor="middle" letter-spacing="2">CONSUMIDOR</text>
+  <text x="1025" y="220" fill="#fff" font-size="19" font-weight="700" text-anchor="middle">notificações</text>
+  <text x="1025" y="246" fill="#7ce6f7" font-size="12.5" text-anchor="middle">taskflow/notificacoes:1.0</text>
+  <text x="1025" y="276" fill="#c8eef5" font-size="13" text-anchor="middle">recebe → registra no log → ACK</text>
+  <text x="1025" y="298" fill="#c8eef5" font-size="13" text-anchor="middle">GET :8004/eventos</text>
+
+  <!-- setas -->
+  <line x1="310" y1="235" x2="428" y2="235" stroke="#fb923c" stroke-width="3" marker-end="url(#setaLar)"/>
+  <text x="369" y="222" fill="#fdba74" font-size="12" text-anchor="middle">1. publica</text>
+  <text x="369" y="256" fill="#fdba74" font-size="11" text-anchor="middle">(com confirmação)</text>
+  <line x1="770" y1="235" x2="888" y2="235" stroke="#9aa8ff" stroke-width="3" marker-end="url(#seta)"/>
+  <text x="829" y="222" fill="#c7cdf5" font-size="12" text-anchor="middle">2. entrega</text>
+  <path d="M1025 320 C1025 395 600 395 600 352" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#seta)"/>
+  <text x="815" y="402" fill="#7ce6f7" font-size="12" text-anchor="middle">3. ACK: só então o broker apaga a mensagem da fila</text>
+
+  <text x="40" y="450" fill="#7f87ad" font-size="12">Rede interna "app": a porta AMQP (5672) não é publicada no computador; só o painel de administração (127.0.0.1:15672) e o /eventos (127.0.0.1:8004).</text>
+</svg>

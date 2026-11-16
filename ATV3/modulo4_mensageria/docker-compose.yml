@@ -1,0 +1,143 @@
+# TaskFlow Cloud — Módulo 4 (Mensageria com RabbitMQ)
+# Tudo do Módulo 3 (3 microsserviços, gateway e 3 bancos) + RabbitMQ + serviço consumidor (notificacoes).
+#   docker compose up -d --build --wait      # sobe tudo e espera ficar saudável
+#   docker compose logs -f notificacoes      # veja os eventos chegando
+#   docker compose down                      # derruba (dados e fila continuam nos volumes)
+#   docker compose down -v                   # derruba e APAGA os volumes
+
+name: taskflow
+
+x-servico: &servico
+  restart: unless-stopped
+  networks: [app, dados]
+
+x-banco: &banco
+  image: postgres:16-alpine
+  restart: unless-stopped
+  networks: [dados]
+  environment: &banco-env
+    POSTGRES_USER: ${POSTGRES_USER:-taskflow}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskflow_dev}
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+    interval: 5s
+    timeout: 3s
+    retries: 10
+
+services:
+  # ------------------------------------------------------------------ bancos
+  db-usuarios:
+    <<: *banco
+    environment:
+      <<: *banco-env
+      POSTGRES_DB: usuarios
+    volumes: [pg_usuarios:/var/lib/postgresql/data]
+
+  db-projetos:
+    <<: *banco
+    environment:
+      <<: *banco-env
+      POSTGRES_DB: projetos
+    volumes: [pg_projetos:/var/lib/postgresql/data]
+
+  db-tarefas:
+    <<: *banco
+    environment:
+      <<: *banco-env
+      POSTGRES_DB: tarefas
+    volumes: [pg_tarefas:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------- microsserviços
+  usuarios:
+    <<: *servico
+    build: ../modulo2_microsservicos/usuarios-service
+    image: taskflow/usuarios:1.0
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-taskflow}:${POSTGRES_PASSWORD:-taskflow_dev}@db-usuarios:5432/usuarios
+    depends_on:
+      db-usuarios: { condition: service_healthy }
+    ports: ["127.0.0.1:8001:8000"]   # só para depuração (docs em /docs); fora do host fica inacessível
+
+  projetos:
+    <<: *servico
+    build: ../modulo2_microsservicos/projetos-service
+    image: taskflow/projetos:1.0
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-taskflow}:${POSTGRES_PASSWORD:-taskflow_dev}@db-projetos:5432/projetos
+    depends_on:
+      db-projetos: { condition: service_healthy }
+    ports: ["127.0.0.1:8002:8000"]
+
+  tarefas:
+    <<: *servico
+    build: ../modulo2_microsservicos/tarefas-service
+    image: taskflow/tarefas:1.0
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-taskflow}:${POSTGRES_PASSWORD:-taskflow_dev}@db-tarefas:5432/tarefas
+      USUARIOS_URL: http://usuarios:8000     # o nome do serviço funciona como DNS na rede do Compose
+      PROJETOS_URL: http://projetos:8000
+      REQUEST_TIMEOUT: "5"
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-taskflow}:${RABBITMQ_PASSWORD:-taskflow_mq}@rabbitmq:5672/   # PRODUTOR
+    depends_on:
+      db-tarefas: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      usuarios: { condition: service_healthy }
+      projetos: { condition: service_healthy }
+    ports: ["127.0.0.1:8003:8000"]
+
+  # ----------------------------------------------------- mensageria (Módulo 4)
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    networks: [app]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-taskflow}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-taskflow_mq}
+    volumes: [rabbitmq_data:/var/lib/rabbitmq]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    ports:
+      - "127.0.0.1:15672:15672"               # painel de administração: http://localhost:15672
+                                              # (a porta AMQP 5672 NÃO é publicada: só a rede interna acessa)
+
+  notificacoes:                               # CONSUMIDOR dos eventos de tarefa
+    build: ./notificacoes-service
+    image: taskflow/notificacoes:1.0
+    restart: unless-stopped
+    networks: [app]
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-taskflow}:${RABBITMQ_PASSWORD:-taskflow_mq}@rabbitmq:5672/
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+    ports: ["127.0.0.1:8004:8000"]            # GET /eventos mostra o que foi recebido
+
+  # ------------------------------------------------------ gateway + painel web
+  gateway:
+    build: ../modulo2_microsservicos/gateway
+    image: taskflow/gateway:1.0
+    restart: unless-stopped
+    networks: [app]                           # não enxerga os bancos
+    environment:
+      USUARIOS_URL: http://usuarios:8000
+      PROJETOS_URL: http://projetos:8000
+      TAREFAS_URL: http://tarefas:8000
+    depends_on:
+      usuarios: { condition: service_healthy }
+      projetos: { condition: service_healthy }
+      tarefas: { condition: service_healthy }
+    ports: ["8000:8000"]                      # única porta publicada para o usuário
+
+networks:
+  app: {}                                     # gateway <-> serviços
+  dados:
+    internal: true                            # serviços <-> bancos; sem acesso à internet
+
+volumes:
+  pg_usuarios:
+  pg_projetos:
+  pg_tarefas:
+  rabbitmq_data:

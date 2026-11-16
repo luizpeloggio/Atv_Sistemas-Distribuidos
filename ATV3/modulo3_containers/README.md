@@ -166,4 +166,4 @@ O Render também aceita implantar a partir de um Dockerfile: ao criar o *Web Ser
 
 ## Preparação para o próximo módulo
 
-O RabbitMQ (Módulo 4) entra como mais um container no `docker-compose.yml`, na rede `app`, e os serviços passam a publicar e consumir eventos como `tarefa.criada` e `tarefa.status_alterado`, que hoje já são registrados nos logs.
+Feito em [`../modulo4_mensageria`](../modulo4_mensageria): o RabbitMQ entrou como mais um container na rede `app`, o serviço de tarefas passou a publicar eventos (`tarefa.criada`, `tarefa.concluida`...) e um novo serviço de notificações os consome.

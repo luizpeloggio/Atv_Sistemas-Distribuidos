@@ -3,7 +3,7 @@
 Disciplina: Sistemas Distribuídos
 Integrantes: Manoel Luiz de Medeiros Neto
 
-- **Vídeo de demonstração (YouTube, não listado):** [COLE AQUI O LINK]
+- **Vídeo de demonstração (YouTube, não listado):** https://youtu.be/F95lwPVkqYM
 - **Módulo anterior (microsserviços):** [`../modulo2_microsservicos`](../modulo2_microsservicos)
 
 Neste módulo, os microsserviços do Módulo 2 foram **empacotados em imagens Docker** e todo o sistema passou a ser executado com **um único comando**, por meio do Docker Compose: 3 microsserviços, o gateway com o painel web e **3 bancos PostgreSQL** (um por serviço), com volumes persistentes. O código dos serviços **não mudou**: só a forma de empacotar e executar.
